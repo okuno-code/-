@@ -15,25 +15,34 @@
 <div class="app">
 
   <header class="app-header">
-    <h1 id="header-title">ホーム</h1>
+    <button id="btn-back" class="back-btn hidden" aria-label="ホームに戻る">‹</button>
+    <h1 id="header-title">かんたん家計簿</h1>
   </header>
 
   <main id="view-root" class="view-root">
 
-    <!-- ホーム画面: 年ごとの収支 -->
+    <!-- ホーム画面 -->
     <section id="view-home" class="view">
-      <div class="year-switcher">
-        <button id="year-prev" class="year-arrow" aria-label="前の年">‹</button>
-        <div class="year-label" id="year-label">----年</div>
-        <button id="year-next" class="year-arrow" aria-label="次の年">›</button>
+      <div class="balance-card">
+        <span class="balance-label">収支</span>
+        <span class="balance-amount" id="home-balance">¥0</span>
       </div>
 
-      <div class="summary-card">
-        <div class="balance-block">
-          <span class="balance-label">収支</span>
-          <span class="balance-amount" id="home-balance">¥0</span>
+      <form id="entry-form" class="entry-form">
+        <div class="amount-field">
+          <span class="yen-sign">¥</span>
+          <input type="number" id="input-amount" inputmode="numeric" min="1" step="1" placeholder="金額を入力" required>
         </div>
-        <div class="summary-divider"></div>
+
+        <div class="type-toggle">
+          <button type="button" class="type-btn expense-type active" data-type="expense">支出</button>
+          <button type="button" class="type-btn income-type" data-type="income">収入</button>
+        </div>
+
+        <button type="submit" class="btn-primary btn-add">記録する</button>
+      </form>
+
+      <div class="summary-card home-split-card">
         <div class="summary-split">
           <div class="split-item">
             <span class="summary-icon income-icon">↑ 収入</span>
@@ -46,22 +55,13 @@
           </div>
         </div>
       </div>
-
-      <div class="month-list" id="month-list"></div>
     </section>
 
-    <!-- 内訳画面: 収入・支出の一覧と取り消し -->
-    <section id="view-breakdown" class="view hidden">
-      <div class="month-switcher">
-        <button id="month-prev" class="year-arrow" aria-label="前の月">‹</button>
-        <div class="month-label" id="month-label">----年--月</div>
-        <button id="month-next" class="year-arrow" aria-label="次の月">›</button>
-      </div>
-
-      <div class="filter-chips">
-        <button class="chip active" data-filter="all">すべて</button>
-        <button class="chip" data-filter="income">収入</button>
-        <button class="chip" data-filter="expense">支出</button>
+    <!-- カレンダー(履歴)画面 -->
+    <section id="view-calendar" class="view hidden">
+      <div class="period-select">
+        <select id="select-year" aria-label="年を選択"></select>
+        <select id="select-month" aria-label="月を選択"></select>
       </div>
 
       <div class="breakdown-summary" id="breakdown-summary"></div>
@@ -70,62 +70,23 @@
       <p class="empty-message hidden" id="breakdown-empty">この期間の記録はまだありません</p>
     </section>
 
-    <!-- 設定画面: 背景カラー変更 -->
+    <!-- 設定画面: 表示カラー変更 -->
     <section id="view-settings" class="view hidden">
       <h2 class="settings-title">画面のカラーを選ぶ</h2>
-      <p class="settings-desc">お好みの色に画面全体の背景を変更できます</p>
+      <p class="settings-desc">お好みの色にアプリ全体の表示カラーを変更できます</p>
       <div class="color-grid" id="color-grid"></div>
     </section>
 
   </main>
 
-  <button id="fab-add" class="fab" aria-label="収支を追加">+</button>
-
   <nav class="bottom-nav">
-    <button class="nav-btn active" data-view="home">
-      <span class="nav-icon">🏠</span><span class="nav-text">ホーム</span>
+    <button class="nav-btn" id="nav-calendar" aria-label="カレンダーで過去の収支を見る">
+      <span class="nav-icon">📅</span><span class="nav-text">カレンダー</span>
     </button>
-    <button class="nav-btn" data-view="breakdown">
-      <span class="nav-icon">📋</span><span class="nav-text">内訳</span>
-    </button>
-    <button class="nav-btn" data-view="settings">
+    <button class="nav-btn" id="nav-settings" aria-label="表示カラーの設定">
       <span class="nav-icon">⚙️</span><span class="nav-text">設定</span>
     </button>
   </nav>
-</div>
-
-<!-- 追加モーダル -->
-<div id="modal-add" class="modal-overlay hidden">
-  <div class="modal">
-    <h2 class="modal-title">記録を追加</h2>
-
-    <div class="type-toggle">
-      <button type="button" class="type-btn expense-type active" data-type="expense">支出</button>
-      <button type="button" class="type-btn income-type" data-type="income">収入</button>
-    </div>
-
-    <form id="add-form">
-      <label class="field-label" for="input-amount">金額</label>
-      <div class="amount-field">
-        <span class="yen-sign">¥</span>
-        <input type="number" id="input-amount" inputmode="numeric" min="1" step="1" placeholder="0" required>
-      </div>
-
-      <label class="field-label" for="input-category">カテゴリ</label>
-      <select id="input-category"></select>
-
-      <label class="field-label" for="input-date">日付</label>
-      <input type="date" id="input-date" required>
-
-      <label class="field-label" for="input-memo">メモ（任意）</label>
-      <input type="text" id="input-memo" placeholder="例）スーパーで買い物">
-
-      <div class="modal-actions">
-        <button type="button" id="modal-cancel" class="btn-secondary">キャンセル</button>
-        <button type="submit" class="btn-primary">保存する</button>
-      </div>
-    </form>
-  </div>
 </div>
 
 <script src="js/app.js"></script>

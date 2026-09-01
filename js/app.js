@@ -4,46 +4,22 @@
   const STORAGE_KEY = "kakeibo.transactions";
   const THEME_KEY = "kakeibo.theme";
 
-  const CATEGORIES = {
-    expense: [
-      { id: "food", label: "食費", icon: "🍚" },
-      { id: "daily", label: "日用品", icon: "🧻" },
-      { id: "transport", label: "交通", icon: "🚃" },
-      { id: "housing", label: "住居", icon: "🏠" },
-      { id: "utility", label: "光熱費", icon: "💡" },
-      { id: "communication", label: "通信", icon: "📱" },
-      { id: "entertainment", label: "娯楽", icon: "🎮" },
-      { id: "medical", label: "医療", icon: "🏥" },
-      { id: "clothing", label: "衣服", icon: "👕" },
-      { id: "other_expense", label: "その他", icon: "📦" },
-    ],
-    income: [
-      { id: "salary", label: "給与", icon: "💼" },
-      { id: "bonus", label: "ボーナス", icon: "🎁" },
-      { id: "side_job", label: "副業", icon: "💻" },
-      { id: "allowance", label: "お小遣い", icon: "👛" },
-      { id: "other_income", label: "その他", icon: "📥" },
-    ],
-  };
-
   const THEMES = [
     { id: "red", label: "赤" },
     { id: "blue", label: "青" },
     { id: "yellow", label: "黄色" },
-    { id: "lightblue", label: "水色" },
-    { id: "pink", label: "ピンク" },
+    { id: "purple", label: "紫" },
     { id: "white", label: "白" },
     { id: "black", label: "黒" },
-    { id: "silver", label: "シルバー" },
     { id: "orange", label: "オレンジ" },
-    { id: "purple", label: "紫" },
-    { id: "green", label: "緑" },
+    { id: "pink", label: "ピンク" },
+    { id: "brown", label: "茶色" },
   ];
 
   const THEME_BG = {
-    red: "#fde8e8", blue: "#e3f0fd", yellow: "#fdf6db", lightblue: "#e0f7fa",
-    pink: "#fce4ec", white: "#ffffff", black: "#ececed", silver: "#f1f2f4",
-    orange: "#fdebd8", purple: "#f1e3fb", green: "#e3f6e8",
+    red: "#fbe4e4", blue: "#e3f0fd", yellow: "#fdf6d9", purple: "#f1e3fb",
+    white: "#ffffff", black: "#ececed", orange: "#fdebd8", pink: "#fce4ef",
+    brown: "#f2e7df",
   };
 
   const MONTH_NAMES = ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"];
@@ -52,10 +28,9 @@
   const now = new Date();
   const state = {
     view: "home",
-    homeYear: now.getFullYear(),
-    bdYear: now.getFullYear(),
-    bdMonth: now.getMonth(), // 0-11
-    bdFilter: "all",
+    calYear: now.getFullYear(),
+    calMonth: now.getMonth(), // 0-11
+    entryType: "expense",
     transactions: loadTransactions(),
   };
 
@@ -92,43 +67,38 @@
     return sign + "¥" + Math.abs(rounded).toLocaleString("ja-JP");
   }
 
-  function categoryInfo(type, categoryId) {
-    const list = CATEGORIES[type] || [];
-    return list.find((c) => c.id === categoryId) || list[list.length - 1];
+  function sumByType(list, type) {
+    return list.filter((t) => t.type === type).reduce((s, t) => s + t.amount, 0);
   }
 
   // ---------- DOM refs ----------
   const headerTitle = document.getElementById("header-title");
+  const backBtn = document.getElementById("btn-back");
   const views = {
     home: document.getElementById("view-home"),
-    breakdown: document.getElementById("view-breakdown"),
+    calendar: document.getElementById("view-calendar"),
     settings: document.getElementById("view-settings"),
   };
-  const navButtons = document.querySelectorAll(".nav-btn");
-  const fab = document.getElementById("fab-add");
+  const navCalendarBtn = document.getElementById("nav-calendar");
+  const navSettingsBtn = document.getElementById("nav-settings");
 
-  const yearLabel = document.getElementById("year-label");
-  const monthList = document.getElementById("month-list");
   const homeIncomeEl = document.getElementById("home-income");
   const homeExpenseEl = document.getElementById("home-expense");
   const homeBalanceEl = document.getElementById("home-balance");
 
-  const monthLabel = document.getElementById("month-label");
+  const entryForm = document.getElementById("entry-form");
+  const inputAmount = document.getElementById("input-amount");
+  const typeButtons = document.querySelectorAll(".type-btn");
+
+  const selectYear = document.getElementById("select-year");
+  const selectMonth = document.getElementById("select-month");
   const breakdownSummary = document.getElementById("breakdown-summary");
   const transactionList = document.getElementById("transaction-list");
   const breakdownEmpty = document.getElementById("breakdown-empty");
 
   const colorGrid = document.getElementById("color-grid");
 
-  const modal = document.getElementById("modal-add");
-  const addForm = document.getElementById("add-form");
-  const inputAmount = document.getElementById("input-amount");
-  const inputCategory = document.getElementById("input-category");
-  const inputDate = document.getElementById("input-date");
-  const inputMemo = document.getElementById("input-memo");
-  let modalType = "expense";
-
-  const HEADER_TITLES = { home: "ホーム", breakdown: "内訳", settings: "設定" };
+  const HEADER_TITLES = { home: "かんたん家計簿", calendar: "カレンダー", settings: "設定" };
 
   // ---------- view switching ----------
   function switchView(view) {
@@ -136,112 +106,108 @@
     Object.entries(views).forEach(([key, el]) => {
       el.classList.toggle("hidden", key !== view);
     });
-    navButtons.forEach((btn) => {
-      btn.classList.toggle("active", btn.dataset.view === view);
-    });
+    backBtn.classList.toggle("hidden", view === "home");
     headerTitle.textContent = HEADER_TITLES[view];
-    fab.classList.toggle("hidden", view === "settings");
+    navCalendarBtn.classList.toggle("active", view === "calendar");
+    navSettingsBtn.classList.toggle("active", view === "settings");
 
     if (view === "home") renderHome();
-    if (view === "breakdown") renderBreakdown();
+    if (view === "calendar") renderCalendar();
     if (view === "settings") renderSettings();
   }
 
-  navButtons.forEach((btn) => {
-    btn.addEventListener("click", () => switchView(btn.dataset.view));
-  });
+  backBtn.addEventListener("click", () => switchView("home"));
+  navCalendarBtn.addEventListener("click", () => switchView("calendar"));
+  navSettingsBtn.addEventListener("click", () => switchView("settings"));
 
   // ---------- home view ----------
   function renderHome() {
-    yearLabel.textContent = state.homeYear + "年";
-
-    const yearTx = state.transactions.filter(
-      (t) => new Date(t.date).getFullYear() === state.homeYear
-    );
-    const income = yearTx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
-    const expense = yearTx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+    const income = sumByType(state.transactions, "income");
+    const expense = sumByType(state.transactions, "expense");
     const balance = income - expense;
 
     homeIncomeEl.textContent = formatCurrency(income);
     homeExpenseEl.textContent = formatCurrency(expense);
     homeBalanceEl.textContent = formatCurrency(balance);
     homeBalanceEl.className = "balance-amount " + (balance >= 0 ? "balance-positive" : "balance-negative");
-
-    monthList.innerHTML = "";
-    for (let m = 0; m < 12; m++) {
-      const monthTx = yearTx.filter((t) => new Date(t.date).getMonth() === m);
-      const mIncome = monthTx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
-      const mExpense = monthTx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
-
-      const btn = document.createElement("button");
-      btn.className = "month-item" + (monthTx.length === 0 ? " empty" : "");
-      btn.innerHTML = `
-        <span class="month-name">${MONTH_NAMES[m]}</span>
-        <span class="month-figures">
-          <span class="income-amount">${formatCurrency(mIncome)}</span>
-          <span class="expense-amount">${formatCurrency(mExpense)}</span>
-        </span>
-      `;
-      btn.addEventListener("click", () => {
-        state.bdYear = state.homeYear;
-        state.bdMonth = m;
-        switchView("breakdown");
-      });
-      monthList.appendChild(btn);
-    }
   }
 
-  document.getElementById("year-prev").addEventListener("click", () => {
-    state.homeYear -= 1;
+  typeButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      state.entryType = btn.dataset.type;
+      typeButtons.forEach((b) => b.classList.toggle("active", b === btn));
+    });
+  });
+
+  entryForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const amount = Number(inputAmount.value);
+    if (!amount || amount <= 0) return;
+
+    state.transactions.push({
+      id: Date.now(),
+      type: state.entryType,
+      amount,
+      date: new Date().toISOString().slice(0, 10),
+    });
+    saveTransactions();
+    inputAmount.value = "";
+    inputAmount.focus();
     renderHome();
   });
-  document.getElementById("year-next").addEventListener("click", () => {
-    if (state.homeYear < now.getFullYear()) {
-      state.homeYear += 1;
-      renderHome();
-    }
-  });
 
-  // ---------- breakdown view ----------
-  function renderBreakdown() {
-    monthLabel.textContent = `${state.bdYear}年 ${MONTH_NAMES[state.bdMonth]}`;
+  // ---------- calendar(履歴) view ----------
+  function renderCalendar() {
+    const years = new Set([now.getFullYear()]);
+    state.transactions.forEach((t) => years.add(new Date(t.date).getFullYear()));
+    const sortedYears = Array.from(years).sort((a, b) => a - b);
 
-    document.querySelectorAll(".chip").forEach((chip) => {
-      chip.classList.toggle("active", chip.dataset.filter === state.bdFilter);
+    selectYear.innerHTML = "";
+    sortedYears.forEach((y) => {
+      const opt = document.createElement("option");
+      opt.value = y;
+      opt.textContent = y + "年";
+      selectYear.appendChild(opt);
     });
+    selectYear.value = state.calYear;
 
-    let monthTx = state.transactions.filter((t) => {
-      const d = new Date(t.date);
-      return d.getFullYear() === state.bdYear && d.getMonth() === state.bdMonth;
+    selectMonth.innerHTML = "";
+    MONTH_NAMES.forEach((label, i) => {
+      const opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = label;
+      selectMonth.appendChild(opt);
     });
+    selectMonth.value = state.calMonth;
 
-    const income = monthTx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
-    const expense = monthTx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+    const monthTx = state.transactions
+      .filter((t) => {
+        const d = new Date(t.date);
+        return d.getFullYear() === state.calYear && d.getMonth() === state.calMonth;
+      })
+      .sort((a, b) => new Date(b.date) - new Date(a.date) || b.id - a.id);
+
+    const income = sumByType(monthTx, "income");
+    const expense = sumByType(monthTx, "expense");
     breakdownSummary.innerHTML = `
       <div class="figure"><span class="label">収入</span><span class="value income-amount">${formatCurrency(income)}</span></div>
       <div class="figure"><span class="label">支出</span><span class="value expense-amount">${formatCurrency(expense)}</span></div>
       <div class="figure"><span class="label">収支</span><span class="value ${income - expense >= 0 ? "balance-positive" : "balance-negative"}">${formatCurrency(income - expense)}</span></div>
     `;
 
-    if (state.bdFilter !== "all") {
-      monthTx = monthTx.filter((t) => t.type === state.bdFilter);
-    }
-    monthTx.sort((a, b) => new Date(b.date) - new Date(a.date) || b.id - a.id);
-
     transactionList.innerHTML = "";
     breakdownEmpty.classList.toggle("hidden", monthTx.length > 0);
 
     monthTx.forEach((t) => {
-      const cat = categoryInfo(t.type, t.category);
       const li = document.createElement("li");
       li.className = "transaction-item";
       const d = new Date(t.date);
       const dateStr = `${d.getMonth() + 1}/${d.getDate()}`;
       li.innerHTML = `
-        <span class="tx-icon">${cat.icon}</span>
+        <span class="tx-icon">${t.type === "income" ? "↑" : "↓"}</span>
         <span class="tx-body">
-          <span class="tx-category">${cat.label}</span><br>
-          <span class="tx-date">${dateStr}</span>${t.memo ? ` <span class="tx-memo">・${escapeHtml(t.memo)}</span>` : ""}
+          <span class="tx-category">${t.type === "income" ? "収入" : "支出"}</span><br>
+          <span class="tx-date">${dateStr}</span>
         </span>
         <span class="tx-amount ${t.type === "income" ? "income-amount" : "expense-amount"}">${t.type === "income" ? "+" : "-"}${formatCurrency(t.amount)}</span>
         <button class="tx-delete" aria-label="取り消し" data-id="${t.id}">✕</button>
@@ -250,28 +216,13 @@
     });
   }
 
-  function escapeHtml(str) {
-    const div = document.createElement("div");
-    div.textContent = str;
-    return div.innerHTML;
-  }
-
-  document.getElementById("month-prev").addEventListener("click", () => {
-    state.bdMonth -= 1;
-    if (state.bdMonth < 0) { state.bdMonth = 11; state.bdYear -= 1; }
-    renderBreakdown();
+  selectYear.addEventListener("change", () => {
+    state.calYear = Number(selectYear.value);
+    renderCalendar();
   });
-  document.getElementById("month-next").addEventListener("click", () => {
-    state.bdMonth += 1;
-    if (state.bdMonth > 11) { state.bdMonth = 0; state.bdYear += 1; }
-    renderBreakdown();
-  });
-
-  document.querySelectorAll(".chip").forEach((chip) => {
-    chip.addEventListener("click", () => {
-      state.bdFilter = chip.dataset.filter;
-      renderBreakdown();
-    });
+  selectMonth.addEventListener("change", () => {
+    state.calMonth = Number(selectMonth.value);
+    renderCalendar();
   });
 
   transactionList.addEventListener("click", (e) => {
@@ -280,11 +231,11 @@
     const id = Number(btn.dataset.id);
     const tx = state.transactions.find((t) => t.id === id);
     if (!tx) return;
-    const label = `${categoryInfo(tx.type, tx.category).label} ${formatCurrency(tx.amount)}`;
+    const label = `${tx.type === "income" ? "収入" : "支出"} ${formatCurrency(tx.amount)}`;
     if (confirm(`この記録を取り消しますか？\n${label}`)) {
       state.transactions = state.transactions.filter((t) => t.id !== id);
       saveTransactions();
-      renderBreakdown();
+      renderCalendar();
     }
   });
 
@@ -308,68 +259,6 @@
       colorGrid.appendChild(btn);
     });
   }
-
-  // ---------- add modal ----------
-  function populateCategories() {
-    inputCategory.innerHTML = "";
-    CATEGORIES[modalType].forEach((cat) => {
-      const opt = document.createElement("option");
-      opt.value = cat.id;
-      opt.textContent = `${cat.icon} ${cat.label}`;
-      inputCategory.appendChild(opt);
-    });
-  }
-
-  function openModal() {
-    modalType = "expense";
-    document.querySelectorAll(".type-btn").forEach((b) =>
-      b.classList.toggle("active", b.dataset.type === modalType)
-    );
-    populateCategories();
-    inputAmount.value = "";
-    inputMemo.value = "";
-    inputDate.value = new Date().toISOString().slice(0, 10);
-    modal.classList.remove("hidden");
-    setTimeout(() => inputAmount.focus(), 50);
-  }
-
-  function closeModal() {
-    modal.classList.add("hidden");
-  }
-
-  fab.addEventListener("click", openModal);
-  document.getElementById("modal-cancel").addEventListener("click", closeModal);
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) closeModal();
-  });
-
-  document.querySelectorAll(".type-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      modalType = btn.dataset.type;
-      document.querySelectorAll(".type-btn").forEach((b) => b.classList.toggle("active", b === btn));
-      populateCategories();
-    });
-  });
-
-  addForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const amount = Number(inputAmount.value);
-    if (!amount || amount <= 0) return;
-
-    state.transactions.push({
-      id: Date.now(),
-      type: modalType,
-      amount,
-      category: inputCategory.value,
-      date: inputDate.value,
-      memo: inputMemo.value.trim(),
-    });
-    saveTransactions();
-    closeModal();
-
-    if (state.view === "home") renderHome();
-    if (state.view === "breakdown") renderBreakdown();
-  });
 
   // ---------- init ----------
   applyTheme(loadTheme());

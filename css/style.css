@@ -9,18 +9,16 @@
   --shadow-lg: 0 6px 20px rgba(0, 0, 0, 0.12);
 }
 
-/* ---- パステルカラーテーマ ---- */
-:root[data-theme="red"]       { --bg: #fde8e8; --accent: #e0433f; --accent-soft: #f6b8b6; }
-:root[data-theme="blue"]      { --bg: #e3f0fd; --accent: #2f7fdb; --accent-soft: #a9d0f5; }
-:root[data-theme="yellow"]    { --bg: #fdf6db; --accent: #d8a900; --accent-soft: #f0dd8f; }
-:root[data-theme="lightblue"] { --bg: #e0f7fa; --accent: #00a0b4; --accent-soft: #8fdde6; }
-:root[data-theme="pink"]      { --bg: #fce4ec; --accent: #e0568a; --accent-soft: #f6b6cf; }
-:root[data-theme="white"]     { --bg: #ffffff; --accent: #767680; --accent-soft: #d9d9dd; }
-:root[data-theme="black"]     { --bg: #ececed; --accent: #45454a; --accent-soft: #bcbcc0; }
-:root[data-theme="silver"]    { --bg: #f1f2f4; --accent: #8b98a5; --accent-soft: #cfd7dd; }
-:root[data-theme="orange"]    { --bg: #fdebd8; --accent: #e6820a; --accent-soft: #f6c58c; }
-:root[data-theme="purple"]    { --bg: #f1e3fb; --accent: #9337b4; --accent-soft: #d6aae9; }
-:root[data-theme="green"]     { --bg: #e3f6e8; --accent: #349245; --accent-soft: #a6dcae; }
+/* ---- パステルカラーテーマ(白を混ぜた薄い色) ---- */
+:root[data-theme="red"]    { --bg: #fbe4e4; --accent: #d98686; --accent-soft: #f0c2c2; }
+:root[data-theme="blue"]   { --bg: #e3f0fd; --accent: #7aa8db; --accent-soft: #b9d3f0; }
+:root[data-theme="yellow"] { --bg: #fdf6d9; --accent: #d9c368; --accent-soft: #f0e2a8; }
+:root[data-theme="purple"] { --bg: #f1e3fb; --accent: #b98fd9; --accent-soft: #ddc2f0; }
+:root[data-theme="white"]  { --bg: #ffffff; --accent: #a3a3aa; --accent-soft: #dcdce0; }
+:root[data-theme="black"]  { --bg: #ececed; --accent: #7a7a80; --accent-soft: #c4c4c8; }
+:root[data-theme="orange"] { --bg: #fdebd8; --accent: #e0a868; --accent-soft: #f0d0a8; }
+:root[data-theme="pink"]   { --bg: #fce4ef; --accent: #e0a0c0; --accent-soft: #f0cfe0; }
+:root[data-theme="brown"]  { --bg: #f2e7df; --accent: #b08968; --accent-soft: #ddc4ac; }
 
 * { box-sizing: border-box; }
 
@@ -57,6 +55,7 @@ button, select, input {
 .app-header {
   padding: calc(env(safe-area-inset-top, 0px) + 18px) 20px 12px;
   text-align: center;
+  position: relative;
 }
 .app-header h1 {
   margin: 0;
@@ -64,6 +63,23 @@ button, select, input {
   font-weight: 700;
   letter-spacing: 0.02em;
 }
+.back-btn {
+  position: absolute;
+  left: 14px;
+  top: calc(env(safe-area-inset-top, 0px) + 12px);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: var(--card-bg-solid);
+  color: var(--accent);
+  font-size: 20px;
+  font-weight: 700;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+}
+.back-btn:active { transform: scale(0.94); }
+.back-btn.hidden { display: none; }
 
 /* ---- 共通ビュー ---- */
 .view-root {
@@ -73,49 +89,18 @@ button, select, input {
 }
 .view.hidden { display: none; }
 
-/* ---- 年切り替え(ホーム) ---- */
-.year-switcher, .month-switcher {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 18px;
-  margin: 8px 0 18px;
-}
-.year-arrow {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: none;
-  background: var(--card-bg-solid);
-  color: var(--accent);
-  font-size: 22px;
-  font-weight: 700;
-  box-shadow: var(--shadow);
-  cursor: pointer;
-}
-.year-arrow:active { transform: scale(0.94); }
-.year-label, .month-label {
-  font-size: 20px;
-  font-weight: 700;
-  min-width: 120px;
-  text-align: center;
-}
-
-/* ---- サマリーカード ---- */
-.summary-card {
+/* ---- 収支カード(ホーム中央) ---- */
+.balance-card {
   background: var(--card-bg-solid);
   border-radius: 20px;
-  padding: 22px 20px 18px;
+  padding: 26px 20px 22px;
   box-shadow: var(--shadow);
-  margin-bottom: 18px;
-}
-.balance-block {
+  margin: 8px 0 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   gap: 6px;
-  padding: 4px 0 14px;
 }
 .balance-label {
   color: var(--text-muted);
@@ -123,14 +108,30 @@ button, select, input {
   font-size: 14px;
 }
 .balance-amount {
-  font-size: 34px;
+  font-size: 36px;
   font-weight: 800;
   letter-spacing: 0.01em;
 }
-.summary-divider {
-  height: 1px;
-  background: rgba(0,0,0,0.08);
-  margin: 0 0 12px;
+.balance-positive { color: var(--income); }
+.balance-negative { color: var(--expense); }
+
+/* ---- 金額入力フォーム(ホーム) ---- */
+.entry-form {
+  background: var(--card-bg-solid);
+  border-radius: 20px;
+  padding: 18px 18px 20px;
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+}
+.btn-add { width: 100%; margin-top: 4px; }
+
+/* ---- サマリーカード ---- */
+.summary-card {
+  background: var(--card-bg-solid);
+  border-radius: 20px;
+  padding: 18px 20px;
+  box-shadow: var(--shadow);
+  margin-bottom: 18px;
 }
 .summary-split {
   display: flex;
@@ -154,55 +155,24 @@ button, select, input {
 .summary-amount { font-size: 17px; font-weight: 700; }
 .income-amount { color: var(--income); }
 .expense-amount { color: var(--expense); }
-.balance-positive { color: var(--income); }
-.balance-negative { color: var(--expense); }
 
-/* ---- 月別リスト(ホーム) ---- */
-.month-list {
+/* ---- 年月選択(カレンダー) ---- */
+.period-select {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+  margin: 8px 0 18px;
 }
-.month-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: var(--card-bg-solid);
-  border-radius: 14px;
-  padding: 12px 16px;
-  box-shadow: var(--shadow);
-  cursor: pointer;
+.period-select select {
+  flex: 1;
+  padding: 12px 10px;
+  border-radius: 12px;
   border: none;
-  width: 100%;
-  text-align: left;
+  background: var(--card-bg-solid);
+  box-shadow: var(--shadow);
+  font-size: 16px;
+  font-weight: 700;
   color: var(--text);
-}
-.month-item:active { transform: scale(0.98); }
-.month-item.empty { opacity: 0.4; }
-.month-name { font-weight: 700; font-size: 14px; width: 48px; }
-.month-figures { display: flex; gap: 14px; font-size: 13px; }
-.month-figures .income-amount, .month-figures .expense-amount { font-weight: 600; }
-
-/* ---- フィルターチップ(内訳) ---- */
-.filter-chips {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 14px;
-}
-.chip {
-  border: none;
-  background: var(--card-bg-solid);
-  color: var(--text-muted);
-  padding: 8px 16px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 600;
-  box-shadow: var(--shadow);
-  cursor: pointer;
-}
-.chip.active {
-  background: var(--accent);
-  color: #fff;
+  text-align: center;
 }
 
 .breakdown-summary {
@@ -250,13 +220,6 @@ button, select, input {
 }
 .tx-body { flex: 1; min-width: 0; }
 .tx-category { font-weight: 700; font-size: 14px; }
-.tx-memo {
-  font-size: 12px;
-  color: var(--text-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 .tx-date { font-size: 11px; color: var(--text-muted); }
 .tx-amount {
   font-weight: 700;
@@ -281,6 +244,7 @@ button, select, input {
   font-size: 14px;
   margin-top: 40px;
 }
+.empty-message.hidden { display: none; }
 
 /* ---- 設定画面 ---- */
 .settings-title { font-size: 17px; margin: 12px 0 4px; }
@@ -301,6 +265,7 @@ button, select, input {
   cursor: pointer;
   box-shadow: var(--shadow);
   position: relative;
+  background: var(--card-bg-solid);
 }
 .swatch-circle {
   width: 40px;
@@ -323,27 +288,6 @@ button, select, input {
   visibility: hidden;
 }
 .color-swatch.selected .swatch-check { visibility: visible; }
-
-/* ---- FAB ---- */
-.fab {
-  position: fixed;
-  right: max(20px, calc((100vw - 480px) / 2 + 20px));
-  bottom: calc(78px + env(safe-area-inset-bottom, 0px));
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  border: none;
-  background: var(--accent);
-  color: #fff;
-  font-size: 28px;
-  line-height: 56px;
-  text-align: center;
-  box-shadow: var(--shadow-lg);
-  cursor: pointer;
-  z-index: 20;
-}
-.fab:active { transform: scale(0.95); }
-.fab.hidden { display: none; }
 
 /* ---- 下部ナビ ---- */
 .bottom-nav {
@@ -376,34 +320,13 @@ button, select, input {
 .nav-icon { font-size: 21px; }
 .nav-text { font-size: 11px; font-weight: 600; }
 
-/* ---- モーダル ---- */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.4);
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  z-index: 30;
-}
-.modal-overlay.hidden { display: none; }
-.modal {
-  background: #fff;
-  width: 100%;
-  max-width: 480px;
-  border-radius: 22px 22px 0 0;
-  padding: 22px 20px calc(24px + env(safe-area-inset-bottom, 0px));
-  max-height: 88vh;
-  overflow-y: auto;
-}
-.modal-title { margin: 0 0 16px; font-size: 18px; }
-
+/* ---- 共通フォーム部品 ---- */
 .type-toggle {
   display: flex;
   background: #f1f1f4;
   border-radius: 12px;
   padding: 4px;
-  margin-bottom: 18px;
+  margin: 14px 0;
 }
 .type-btn {
   flex: 1;
@@ -419,24 +342,6 @@ button, select, input {
 .type-btn.active.expense-type { background: var(--expense); color: #fff; }
 .type-btn.active.income-type { background: var(--income); color: #fff; }
 
-.field-label {
-  display: block;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text-muted);
-  margin: 14px 0 6px;
-}
-#add-form select,
-#add-form input[type="date"],
-#add-form input[type="text"] {
-  width: 100%;
-  padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px solid #e2e2e6;
-  background: #fafafb;
-  font-size: 15px;
-  color: var(--text);
-}
 .amount-field {
   display: flex;
   align-items: center;
@@ -456,22 +361,17 @@ button, select, input {
 }
 .amount-field input:focus { outline: none; }
 
-.modal-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 22px;
-}
-.btn-secondary, .btn-primary {
-  flex: 1;
+.btn-primary {
   border: none;
   padding: 14px 0;
   border-radius: 12px;
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
+  background: var(--accent);
+  color: #fff;
 }
-.btn-secondary { background: #f1f1f4; color: var(--text); }
-.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:active { transform: scale(0.98); }
 
 @media (min-width: 481px) {
   .app { box-shadow: var(--shadow-lg); }
