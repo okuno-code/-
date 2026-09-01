@@ -30,7 +30,7 @@ html, body {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+  font-family: "Droid Sans", -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN",
     "Yu Gothic", "Segoe UI", Roboto, sans-serif;
   color: var(--text);
   -webkit-tap-highlight-color: transparent;
@@ -86,21 +86,33 @@ button, select, input {
   flex: 1;
   padding: 4px 16px 100px;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 .view.hidden { display: none; }
+
+#view-home {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+#view-home.hidden {
+  display: none;
+}
 
 /* ---- 収支カード(ホーム中央) ---- */
 .balance-card {
   background: var(--card-bg-solid);
-  border-radius: 18px;
-  padding: 16px 20px 14px;
+  border-radius: 16px;
+  padding: 12px 18px 10px;
   box-shadow: var(--shadow);
   margin: 8px 0 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 4px;
+  gap: 3px;
 }
 .balance-label {
   color: var(--text-muted);
@@ -188,7 +200,7 @@ button, select, input {
 }
 .breakdown-summary .figure { text-align: center; }
 .breakdown-summary .figure .label { color: var(--text-muted); display: block; margin-bottom: 2px; }
-.breakdown-summary .figure .value { font-weight: 700; font-size: 15px; }
+.breakdown-summary .figure .value { font-weight: 700; font-size: 13px; }
 
 /* ---- 取引リスト ---- */
 .transaction-list {
