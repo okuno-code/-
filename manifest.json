@@ -1,0 +1,18 @@
+{
+  "name": "かんたん家計簿",
+  "short_name": "家計簿",
+  "description": "収入と支出をシンプルに記録・確認できる家計簿アプリ",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#e3f0fd",
+  "theme_color": "#e3f0fd",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
