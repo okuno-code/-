@@ -92,15 +92,15 @@ button, select, input {
 /* ---- 収支カード(ホーム中央) ---- */
 .balance-card {
   background: var(--card-bg-solid);
-  border-radius: 20px;
-  padding: 26px 20px 22px;
+  border-radius: 18px;
+  padding: 16px 20px 14px;
   box-shadow: var(--shadow);
   margin: 8px 0 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 6px;
+  gap: 4px;
 }
 .balance-label {
   color: var(--text-muted);
@@ -108,9 +108,9 @@ button, select, input {
   font-size: 14px;
 }
 .balance-amount {
-  font-size: 36px;
-  font-weight: 800;
-  letter-spacing: 0.01em;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text);
 }
 .balance-positive { color: var(--income); }
 .balance-negative { color: var(--expense); }
@@ -155,6 +155,7 @@ button, select, input {
 .summary-amount { font-size: 17px; font-weight: 700; }
 .income-amount { color: var(--income); }
 .expense-amount { color: var(--expense); }
+.home-figure-amount { color: var(--text); }
 
 /* ---- 年月選択(カレンダー) ---- */
 .period-select {
@@ -300,7 +301,7 @@ button, select, input {
   display: flex;
   background: var(--card-bg-solid);
   box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
-  padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
+  padding: 5px 6px calc(5px + env(safe-area-inset-bottom, 0px));
   z-index: 10;
 }
 .nav-btn {
@@ -310,15 +311,16 @@ button, select, input {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 8px 0 4px;
+  gap: 1px;
+  padding: 5px 0 3px;
   color: var(--text-muted);
   cursor: pointer;
-  border-radius: 12px;
+  border-radius: 10px;
 }
 .nav-btn.active { color: var(--accent); }
-.nav-icon { font-size: 21px; }
-.nav-text { font-size: 11px; font-weight: 600; }
+.nav-icon { display: flex; }
+.nav-icon svg { width: 18px; height: 18px; }
+.nav-text { font-size: 10px; font-weight: 600; }
 
 /* ---- 共通フォーム部品 ---- */
 .type-toggle {
@@ -328,6 +330,8 @@ button, select, input {
   padding: 4px;
   margin: 14px 0;
 }
+.type-toggle.hidden { display: none; }
+.category-field.hidden { display: none; }
 .type-btn {
   flex: 1;
   border: none;
@@ -389,6 +393,52 @@ button, select, input {
   color: #fff;
 }
 .btn-primary:active { transform: scale(0.98); }
+
+/* ---- レポート画面(円グラフ) ---- */
+.pie-block {
+  background: var(--card-bg-solid);
+  border-radius: 18px;
+  padding: 16px 18px 18px;
+  box-shadow: var(--shadow);
+  margin-bottom: 14px;
+}
+.pie-title {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.pie-chart {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  margin: 0 auto 14px;
+  background: #ececed;
+  box-shadow: var(--shadow);
+}
+.pie-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.pie-legend li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+}
+.legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.legend-label { flex: 1; color: var(--text); }
+.legend-value { font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+.legend-empty { color: var(--text-muted); justify-content: center; }
 
 @media (min-width: 481px) {
   .app { box-shadow: var(--shadow-lg); }

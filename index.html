@@ -16,7 +16,7 @@
 
   <header class="app-header">
     <button id="btn-back" class="back-btn hidden" aria-label="ホームに戻る">‹</button>
-    <h1 id="header-title">かんたん家計簿</h1>
+    <h1 id="header-title"></h1>
   </header>
 
   <main id="view-root" class="view-root">
@@ -34,13 +34,15 @@
           <input type="number" id="input-amount" inputmode="numeric" min="1" step="1" placeholder="金額を入力" required>
         </div>
 
-        <div class="type-toggle">
+        <div class="type-toggle hidden" id="type-toggle">
           <button type="button" class="type-btn expense-type active" data-type="expense">支出</button>
           <button type="button" class="type-btn income-type" data-type="income">収入</button>
         </div>
 
-        <label class="field-label" for="input-category">カテゴリ</label>
-        <select id="input-category"></select>
+        <div class="category-field hidden" id="category-field">
+          <label class="field-label" for="input-category">カテゴリ</label>
+          <select id="input-category"></select>
+        </div>
 
         <button type="submit" class="btn-primary btn-add">記録する</button>
       </form>
@@ -48,13 +50,13 @@
       <div class="summary-card home-split-card">
         <div class="summary-split">
           <div class="split-item">
-            <span class="summary-icon income-icon">↑ 収入</span>
-            <span class="summary-amount income-amount" id="home-income">¥0</span>
+            <span class="summary-icon">↑ 今月の収入</span>
+            <span class="summary-amount home-figure-amount" id="home-income">¥0</span>
           </div>
           <div class="split-sep"></div>
           <div class="split-item">
-            <span class="summary-icon expense-icon">↓ 支出</span>
-            <span class="summary-amount expense-amount" id="home-expense">¥0</span>
+            <span class="summary-icon">↓ 今月の支出</span>
+            <span class="summary-amount home-figure-amount" id="home-expense">¥0</span>
           </div>
         </div>
       </div>
@@ -73,6 +75,24 @@
       <p class="empty-message hidden" id="breakdown-empty">この期間の記録はまだありません</p>
     </section>
 
+    <!-- レポート画面: 今月の円グラフ -->
+    <section id="view-report" class="view hidden">
+      <div class="pie-block">
+        <h2 class="pie-title">今月の収入</h2>
+        <div class="pie-chart" id="pie-income"></div>
+        <ul class="pie-legend" id="legend-income"></ul>
+      </div>
+      <div class="pie-block">
+        <h2 class="pie-title">今月の支出</h2>
+        <div class="pie-chart" id="pie-expense"></div>
+        <ul class="pie-legend" id="legend-expense"></ul>
+      </div>
+
+      <h2 class="settings-title">今月の記録</h2>
+      <ul class="transaction-list" id="report-transaction-list"></ul>
+      <p class="empty-message hidden" id="report-empty">今月の記録はまだありません</p>
+    </section>
+
     <!-- 設定画面: 表示カラー変更 -->
     <section id="view-settings" class="view hidden">
       <h2 class="settings-title">画面のカラーを選ぶ</h2>
@@ -84,10 +104,22 @@
 
   <nav class="bottom-nav">
     <button class="nav-btn" id="nav-calendar" aria-label="カレンダーで過去の収支を見る">
-      <span class="nav-icon">📅</span><span class="nav-text">カレンダー</span>
+      <span class="nav-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.7h17"/><path d="M8 3.2v3M16 3.2v3"/></svg>
+      </span>
+      <span class="nav-text">カレンダー</span>
+    </button>
+    <button class="nav-btn" id="nav-report" aria-label="今月の円グラフを見る">
+      <span class="nav-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.3"/><path d="M12 3.7V12l6.2 3.3"/></svg>
+      </span>
+      <span class="nav-text">レポート</span>
     </button>
     <button class="nav-btn" id="nav-settings" aria-label="表示カラーの設定">
-      <span class="nav-icon">⚙️</span><span class="nav-text">設定</span>
+      <span class="nav-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 4v2.6M12 17.4V20M20 12h-2.6M6.6 12H4M17.3 6.7l-1.8 1.8M8.5 15.5l-1.8 1.8M17.3 17.3l-1.8-1.8M8.5 8.5 6.7 6.7"/></svg>
+      </span>
+      <span class="nav-text">設定</span>
     </button>
   </nav>
 </div>
