@@ -4,6 +4,17 @@
   const STORAGE_KEY = "kakeibo.transactions";
   const THEME_KEY = "kakeibo.theme";
 
+  const CATEGORIES = [
+    { id: "main_job", label: "本業" },
+    { id: "side_job", label: "副業" },
+    { id: "food", label: "食費" },
+    { id: "rent", label: "家賃" },
+    { id: "utility", label: "光熱費" },
+    { id: "entertainment", label: "娯楽" },
+    { id: "stock", label: "株" },
+    { id: "transport", label: "交通費" },
+  ];
+
   const THEMES = [
     { id: "red", label: "赤" },
     { id: "blue", label: "青" },
@@ -71,6 +82,11 @@
     return list.filter((t) => t.type === type).reduce((s, t) => s + t.amount, 0);
   }
 
+  function categoryLabel(id) {
+    const cat = CATEGORIES.find((c) => c.id === id);
+    return cat ? cat.label : "その他";
+  }
+
   // ---------- DOM refs ----------
   const headerTitle = document.getElementById("header-title");
   const backBtn = document.getElementById("btn-back");
@@ -88,6 +104,7 @@
 
   const entryForm = document.getElementById("entry-form");
   const inputAmount = document.getElementById("input-amount");
+  const inputCategory = document.getElementById("input-category");
   const typeButtons = document.querySelectorAll(".type-btn");
 
   const selectYear = document.getElementById("select-year");
@@ -139,6 +156,16 @@
     });
   });
 
+  function populateCategorySelect() {
+    inputCategory.innerHTML = "";
+    CATEGORIES.forEach((cat) => {
+      const opt = document.createElement("option");
+      opt.value = cat.id;
+      opt.textContent = cat.label;
+      inputCategory.appendChild(opt);
+    });
+  }
+
   entryForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const amount = Number(inputAmount.value);
@@ -148,6 +175,7 @@
       id: Date.now(),
       type: state.entryType,
       amount,
+      category: inputCategory.value,
       date: new Date().toISOString().slice(0, 10),
     });
     saveTransactions();
@@ -206,7 +234,7 @@
       li.innerHTML = `
         <span class="tx-icon">${t.type === "income" ? "↑" : "↓"}</span>
         <span class="tx-body">
-          <span class="tx-category">${t.type === "income" ? "収入" : "支出"}</span><br>
+          <span class="tx-category">${categoryLabel(t.category)}</span><br>
           <span class="tx-date">${dateStr}</span>
         </span>
         <span class="tx-amount ${t.type === "income" ? "income-amount" : "expense-amount"}">${t.type === "income" ? "+" : "-"}${formatCurrency(t.amount)}</span>
@@ -231,7 +259,7 @@
     const id = Number(btn.dataset.id);
     const tx = state.transactions.find((t) => t.id === id);
     if (!tx) return;
-    const label = `${tx.type === "income" ? "収入" : "支出"} ${formatCurrency(tx.amount)}`;
+    const label = `${categoryLabel(tx.category)} ${formatCurrency(tx.amount)}`;
     if (confirm(`この記録を取り消しますか？\n${label}`)) {
       state.transactions = state.transactions.filter((t) => t.id !== id);
       saveTransactions();
@@ -261,6 +289,7 @@
   }
 
   // ---------- init ----------
+  populateCategorySelect();
   applyTheme(loadTheme());
   switchView("home");
 })();
