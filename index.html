@@ -29,18 +29,21 @@
       </div>
 
       <div class="summary-card">
-        <div class="summary-row">
-          <span class="summary-icon income-icon">↑ 収入</span>
-          <span class="summary-amount income-amount" id="home-income">¥0</span>
-        </div>
-        <div class="summary-row">
-          <span class="summary-icon expense-icon">↓ 支出</span>
-          <span class="summary-amount expense-amount" id="home-expense">¥0</span>
+        <div class="balance-block">
+          <span class="balance-label">収支</span>
+          <span class="balance-amount" id="home-balance">¥0</span>
         </div>
         <div class="summary-divider"></div>
-        <div class="summary-row summary-balance-row">
-          <span class="summary-icon">収支</span>
-          <span class="summary-amount" id="home-balance">¥0</span>
+        <div class="summary-split">
+          <div class="split-item">
+            <span class="summary-icon income-icon">↑ 収入</span>
+            <span class="summary-amount income-amount" id="home-income">¥0</span>
+          </div>
+          <div class="split-sep"></div>
+          <div class="split-item">
+            <span class="summary-icon expense-icon">↓ 支出</span>
+            <span class="summary-amount expense-amount" id="home-expense">¥0</span>
+          </div>
         </div>
       </div>
 

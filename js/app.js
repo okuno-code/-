@@ -165,7 +165,7 @@
     homeIncomeEl.textContent = formatCurrency(income);
     homeExpenseEl.textContent = formatCurrency(expense);
     homeBalanceEl.textContent = formatCurrency(balance);
-    homeBalanceEl.className = "summary-amount " + (balance >= 0 ? "balance-positive" : "balance-negative");
+    homeBalanceEl.className = "balance-amount " + (balance >= 0 ? "balance-positive" : "balance-negative");
 
     monthList.innerHTML = "";
     for (let m = 0; m < 12; m++) {

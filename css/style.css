@@ -105,28 +105,55 @@ button, select, input {
 .summary-card {
   background: var(--card-bg-solid);
   border-radius: 20px;
-  padding: 18px 20px;
+  padding: 22px 20px 18px;
   box-shadow: var(--shadow);
   margin-bottom: 18px;
 }
-.summary-row {
+.balance-block {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  padding: 8px 0;
-  font-size: 15px;
+  text-align: center;
+  gap: 6px;
+  padding: 4px 0 14px;
 }
-.summary-icon { color: var(--text-muted); font-weight: 600; }
-.summary-amount { font-size: 17px; font-weight: 700; }
-.income-amount { color: var(--income); }
-.expense-amount { color: var(--expense); }
+.balance-label {
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 14px;
+}
+.balance-amount {
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
 .summary-divider {
   height: 1px;
   background: rgba(0,0,0,0.08);
-  margin: 4px 0;
+  margin: 0 0 12px;
 }
-.summary-balance-row .summary-icon { color: var(--text); }
-.summary-balance-row .summary-amount { font-size: 22px; }
+.summary-split {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+.split-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+}
+.split-sep {
+  width: 1px;
+  align-self: stretch;
+  background: rgba(0,0,0,0.08);
+  margin: 0 8px;
+}
+.summary-icon { color: var(--text-muted); font-weight: 600; font-size: 13px; }
+.summary-amount { font-size: 17px; font-weight: 700; }
+.income-amount { color: var(--income); }
+.expense-amount { color: var(--expense); }
 .balance-positive { color: var(--income); }
 .balance-negative { color: var(--expense); }
 
