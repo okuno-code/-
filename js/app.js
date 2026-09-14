@@ -84,6 +84,79 @@
     localStorage.setItem(TODO_STORAGE_KEY, JSON.stringify(state.todos));
   }
 
+  // ---------- クラウド同期(ブラウザを閉じてもデータを保持) ----------
+  // window.claude が使える環境(Artifact)でのみ有効化され、それ以外では
+  // 常に localStorage のみで動作する(フォールバック)。
+  let txCol = null;
+  let todoCol = null;
+  let prefsDoc = null;
+
+  async function initCloudSync() {
+    const claude = window.claude;
+    if (!claude || typeof claude.use !== "function") return;
+
+    let db;
+    try {
+      db = await claude.use("db");
+    } catch (e) {
+      return;
+    }
+    if (!db) return;
+
+    txCol = db.collection("transactions");
+    todoCol = db.collection("todos");
+    prefsDoc = db.doc("settings/prefs");
+
+    try {
+      const txSnap = await txCol.limit(1).get();
+      if (txSnap.empty && state.transactions.length > 0) {
+        for (const t of state.transactions) {
+          await txCol.doc(String(t.id)).set({
+            type: t.type, amount: t.amount, category: t.category, date: t.date,
+          });
+        }
+      }
+      const todoSnap = await todoCol.limit(1).get();
+      if (todoSnap.empty && state.todos.length > 0) {
+        for (const t of state.todos) {
+          await todoCol.doc(String(t.id)).set({
+            text: t.text, dueDate: t.dueDate, done: t.done,
+          });
+        }
+      }
+      const prefsSnap = await prefsDoc.get();
+      if (!prefsSnap.exists) {
+        await prefsDoc.set({ theme: loadTheme() });
+      }
+    } catch (e) {
+      // 初回移行に失敗しても購読は継続し、以後の読み書きで復帰を試みる
+    }
+
+    txCol.onSnapshot((qs) => {
+      state.transactions = qs.docs.map((d) => ({ id: Number(d.id), ...d.data() }));
+      saveTransactions();
+      if (state.view === "home") renderHome();
+      if (state.view === "calendar") renderCalendar();
+      if (state.view === "report") renderReport();
+    });
+
+    todoCol.onSnapshot((qs) => {
+      state.todos = qs.docs.map((d) => ({ id: Number(d.id), ...d.data() }));
+      saveTodos();
+      if (state.view === "todo") renderTodo();
+    });
+
+    prefsDoc.onSnapshot((snap) => {
+      if (!snap.exists) return;
+      const theme = snap.data().theme;
+      if (theme) {
+        applyTheme(theme);
+        saveTheme(theme);
+        if (state.view === "settings") renderSettings();
+      }
+    });
+  }
+
   function escapeHtml(str) {
     const div = document.createElement("div");
     div.textContent = str;
@@ -249,18 +322,26 @@
     const amount = Number(inputAmount.value);
     if (!amount || amount <= 0) return;
 
-    state.transactions.push({
+    const tx = {
       id: Date.now(),
       type: state.entryType,
       amount,
       category: inputCategory.value,
       date: new Date().toISOString().slice(0, 10),
-    });
-    saveTransactions();
+    };
+
+    if (txCol) {
+      txCol.doc(String(tx.id)).set({
+        type: tx.type, amount: tx.amount, category: tx.category, date: tx.date,
+      });
+    } else {
+      state.transactions.push(tx);
+      saveTransactions();
+      renderHome();
+    }
     inputAmount.value = "";
     setEntryFieldsVisible(false);
     inputAmount.focus();
-    renderHome();
   });
 
   // ---------- calendar(履歴) view ----------
@@ -340,10 +421,14 @@
     if (!tx) return;
     const label = `${categoryLabel(tx.category)} ${formatCurrency(tx.amount)}`;
     if (confirm(`この記録を取り消しますか？\n${label}`)) {
-      state.transactions = state.transactions.filter((t) => t.id !== id);
-      saveTransactions();
-      if (state.view === "calendar") renderCalendar();
-      if (state.view === "report") renderReport();
+      if (txCol) {
+        txCol.doc(String(id)).delete();
+      } else {
+        state.transactions = state.transactions.filter((t) => t.id !== id);
+        saveTransactions();
+        if (state.view === "calendar") renderCalendar();
+        if (state.view === "report") renderReport();
+      }
     }
   }
   transactionList.addEventListener("click", handleDeleteClick);
@@ -446,37 +531,53 @@
     const text = todoTextInput.value.trim();
     if (!text) return;
 
-    state.todos.push({
+    const todo = {
       id: Date.now(),
       text,
       dueDate: todoDateInput.value || "",
       done: false,
-    });
-    saveTodos();
+    };
+
+    if (todoCol) {
+      todoCol.doc(String(todo.id)).set({
+        text: todo.text, dueDate: todo.dueDate, done: todo.done,
+      });
+    } else {
+      state.todos.push(todo);
+      saveTodos();
+      renderTodo();
+    }
     todoTextInput.value = "";
     todoDateInput.value = "";
     todoTextInput.focus();
-    renderTodo();
   });
 
   todoListEl.addEventListener("click", (e) => {
     const delBtn = e.target.closest(".todo-delete");
     if (!delBtn) return;
     const id = Number(delBtn.dataset.id);
-    state.todos = state.todos.filter((t) => t.id !== id);
-    saveTodos();
-    renderTodo();
+    if (todoCol) {
+      todoCol.doc(String(id)).delete();
+    } else {
+      state.todos = state.todos.filter((t) => t.id !== id);
+      saveTodos();
+      renderTodo();
+    }
   });
 
   todoListEl.addEventListener("change", (e) => {
     const cb = e.target.closest(".todo-check");
     if (!cb) return;
     const id = Number(cb.dataset.id);
-    const todo = state.todos.find((t) => t.id === id);
-    if (!todo) return;
-    todo.done = cb.checked;
-    saveTodos();
-    renderTodo();
+    if (todoCol) {
+      todoCol.doc(String(id)).update({ done: cb.checked });
+    } else {
+      const todo = state.todos.find((t) => t.id === id);
+      if (!todo) return;
+      todo.done = cb.checked;
+      saveTodos();
+      renderTodo();
+    }
   });
 
   // ---------- settings view ----------
@@ -494,6 +595,7 @@
       btn.addEventListener("click", () => {
         applyTheme(theme.id);
         saveTheme(theme.id);
+        if (prefsDoc) prefsDoc.set({ theme: theme.id });
         renderSettings();
       });
       colorGrid.appendChild(btn);
@@ -504,4 +606,5 @@
   populateCategorySelect();
   applyTheme(loadTheme());
   switchView("home");
+  initCloudSync();
 })();
