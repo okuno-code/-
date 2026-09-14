@@ -14,6 +14,8 @@
     { id: "entertainment", label: "娯楽" },
     { id: "stock", label: "株" },
     { id: "transport", label: "交通費" },
+    { id: "subscription", label: "サブスク" },
+    { id: "mobile", label: "スマホ通信料" },
   ];
 
   const CATEGORY_COLORS = {
@@ -25,6 +27,8 @@
     entertainment: "#e6cb6b",
     stock: "#6fb8b2",
     transport: "#c97f63",
+    subscription: "#6b7fd7",
+    mobile: "#d9738f",
   };
 
   const THEMES = [
