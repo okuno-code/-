@@ -313,7 +313,7 @@ button, select, input {
   display: flex;
   background: var(--card-bg-solid);
   box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
-  padding: 5px 6px calc(5px + env(safe-area-inset-bottom, 0px));
+  padding: 6px 6px calc(6px + env(safe-area-inset-bottom, 0px));
   z-index: 10;
 }
 .nav-btn {
@@ -323,16 +323,16 @@ button, select, input {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1px;
-  padding: 5px 0 3px;
+  gap: 2px;
+  padding: 6px 0 4px;
   color: var(--text-muted);
   cursor: pointer;
   border-radius: 10px;
 }
 .nav-btn.active { color: var(--accent); }
 .nav-icon { display: flex; }
-.nav-icon svg { width: 18px; height: 18px; }
-.nav-text { font-size: 10px; font-weight: 600; }
+.nav-icon svg { width: 22px; height: 22px; }
+.nav-text { font-size: 11.5px; font-weight: 600; }
 
 /* ---- 共通フォーム部品 ---- */
 .type-toggle {

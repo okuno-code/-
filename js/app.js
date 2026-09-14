@@ -330,15 +330,22 @@
       date: new Date().toISOString().slice(0, 10),
     };
 
+    state.transactions.push(tx);
+    saveTransactions();
+    renderHome();
+
     if (txCol) {
       txCol.doc(String(tx.id)).set({
         type: tx.type, amount: tx.amount, category: tx.category, date: tx.date,
+      }).catch((err) => {
+        state.transactions = state.transactions.filter((t) => t.id !== tx.id);
+        saveTransactions();
+        renderHome();
+        console.error("db write failed", err);
+        alert("クラウドへの保存に失敗しました。もう一度お試しください。");
       });
-    } else {
-      state.transactions.push(tx);
-      saveTransactions();
-      renderHome();
     }
+
     inputAmount.value = "";
     setEntryFieldsVisible(false);
     inputAmount.focus();
@@ -420,15 +427,25 @@
     const tx = state.transactions.find((t) => t.id === id);
     if (!tx) return;
     const label = `${categoryLabel(tx.category)} ${formatCurrency(tx.amount)}`;
-    if (confirm(`この記録を取り消しますか？\n${label}`)) {
-      if (txCol) {
-        txCol.doc(String(id)).delete();
-      } else {
-        state.transactions = state.transactions.filter((t) => t.id !== id);
+    if (!confirm(`この記録を取り消しますか？\n${label}`)) return;
+
+    const prevTransactions = state.transactions;
+    state.transactions = state.transactions.filter((t) => t.id !== id);
+    saveTransactions();
+    if (state.view === "calendar") renderCalendar();
+    if (state.view === "report") renderReport();
+    if (state.view === "home") renderHome();
+
+    if (txCol) {
+      txCol.doc(String(id)).delete().catch((err) => {
+        state.transactions = prevTransactions;
         saveTransactions();
         if (state.view === "calendar") renderCalendar();
         if (state.view === "report") renderReport();
-      }
+        if (state.view === "home") renderHome();
+        console.error("db delete failed", err);
+        alert("削除がクラウドに反映できませんでした。もう一度お試しください。");
+      });
     }
   }
   transactionList.addEventListener("click", handleDeleteClick);
@@ -538,15 +555,22 @@
       done: false,
     };
 
+    state.todos.push(todo);
+    saveTodos();
+    renderTodo();
+
     if (todoCol) {
       todoCol.doc(String(todo.id)).set({
         text: todo.text, dueDate: todo.dueDate, done: todo.done,
+      }).catch((err) => {
+        state.todos = state.todos.filter((t) => t.id !== todo.id);
+        saveTodos();
+        renderTodo();
+        console.error("db write failed", err);
+        alert("クラウドへの保存に失敗しました。もう一度お試しください。");
       });
-    } else {
-      state.todos.push(todo);
-      saveTodos();
-      renderTodo();
     }
+
     todoTextInput.value = "";
     todoDateInput.value = "";
     todoTextInput.focus();
@@ -556,12 +580,20 @@
     const delBtn = e.target.closest(".todo-delete");
     if (!delBtn) return;
     const id = Number(delBtn.dataset.id);
+
+    const prevTodos = state.todos;
+    state.todos = state.todos.filter((t) => t.id !== id);
+    saveTodos();
+    renderTodo();
+
     if (todoCol) {
-      todoCol.doc(String(id)).delete();
-    } else {
-      state.todos = state.todos.filter((t) => t.id !== id);
-      saveTodos();
-      renderTodo();
+      todoCol.doc(String(id)).delete().catch((err) => {
+        state.todos = prevTodos;
+        saveTodos();
+        renderTodo();
+        console.error("db delete failed", err);
+        alert("削除がクラウドに反映できませんでした。もう一度お試しください。");
+      });
     }
   });
 
@@ -569,14 +601,22 @@
     const cb = e.target.closest(".todo-check");
     if (!cb) return;
     const id = Number(cb.dataset.id);
+    const todo = state.todos.find((t) => t.id === id);
+    if (!todo) return;
+
+    const prevDone = todo.done;
+    todo.done = cb.checked;
+    saveTodos();
+    renderTodo();
+
     if (todoCol) {
-      todoCol.doc(String(id)).update({ done: cb.checked });
-    } else {
-      const todo = state.todos.find((t) => t.id === id);
-      if (!todo) return;
-      todo.done = cb.checked;
-      saveTodos();
-      renderTodo();
+      todoCol.doc(String(id)).update({ done: cb.checked }).catch((err) => {
+        const t = state.todos.find((x) => x.id === id);
+        if (t) t.done = prevDone;
+        saveTodos();
+        renderTodo();
+        console.error("db update failed", err);
+      });
     }
   });
 
@@ -595,7 +635,7 @@
       btn.addEventListener("click", () => {
         applyTheme(theme.id);
         saveTheme(theme.id);
-        if (prefsDoc) prefsDoc.set({ theme: theme.id });
+        if (prefsDoc) prefsDoc.set({ theme: theme.id }).catch((err) => console.error("db write failed", err));
         renderSettings();
       });
       colorGrid.appendChild(btn);
