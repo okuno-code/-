@@ -95,6 +95,20 @@
       <p class="empty-message hidden" id="report-empty">今月の記録はまだありません</p>
     </section>
 
+    <!-- VZ画面: やることリスト -->
+    <section id="view-todo" class="view hidden">
+      <form id="todo-form" class="entry-form">
+        <div class="todo-input-row">
+          <input type="text" id="todo-text" placeholder="やることを入力" required>
+          <input type="date" id="todo-date" aria-label="期限">
+        </div>
+        <button type="submit" class="btn-primary btn-add">追加する</button>
+      </form>
+
+      <ul class="todo-list" id="todo-list"></ul>
+      <p class="empty-message hidden" id="todo-empty">やることはまだありません</p>
+    </section>
+
     <!-- 設定画面: 表示カラー変更 -->
     <section id="view-settings" class="view hidden">
       <h2 class="settings-title">画面のカラーを選ぶ</h2>
@@ -122,6 +136,12 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 4v2.6M12 17.4V20M20 12h-2.6M6.6 12H4M17.3 6.7l-1.8 1.8M8.5 15.5l-1.8 1.8M17.3 17.3l-1.8-1.8M8.5 8.5 6.7 6.7"/></svg>
       </span>
       <span class="nav-text">設定</span>
+    </button>
+    <button class="nav-btn" id="nav-todo" aria-label="やることリスト">
+      <span class="nav-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4.3 6.5l1.3 1.3L8 5.3"/><path d="M10.3 6.3h9.4"/><path d="M4.3 12.5l1.3 1.3L8 11.3"/><path d="M10.3 12.3h9.4"/><path d="M4.3 18.5l1.3 1.3L8 17.3"/><path d="M10.3 18.3h9.4"/></svg>
+      </span>
+      <span class="nav-text">VZ</span>
     </button>
   </nav>
 </div>

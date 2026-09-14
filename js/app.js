@@ -2,6 +2,7 @@
   "use strict";
 
   const STORAGE_KEY = "kakeibo.transactions";
+  const TODO_STORAGE_KEY = "kakeibo.todos";
   const THEME_KEY = "kakeibo.theme";
 
   const CATEGORIES = [
@@ -54,6 +55,7 @@
     calMonth: now.getMonth(), // 0-11
     entryType: "expense",
     transactions: loadTransactions(),
+    todos: loadTodos(),
   };
 
   function loadTransactions() {
@@ -67,6 +69,30 @@
 
   function saveTransactions() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state.transactions));
+  }
+
+  function loadTodos() {
+    try {
+      const raw = localStorage.getItem(TODO_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveTodos() {
+    localStorage.setItem(TODO_STORAGE_KEY, JSON.stringify(state.todos));
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function formatDueDate(dateStr) {
+    const d = new Date(dateStr + "T00:00:00");
+    return `期限 ${d.getMonth() + 1}/${d.getDate()}`;
   }
 
   function loadTheme() {
@@ -105,10 +131,12 @@
     home: document.getElementById("view-home"),
     calendar: document.getElementById("view-calendar"),
     report: document.getElementById("view-report"),
+    todo: document.getElementById("view-todo"),
     settings: document.getElementById("view-settings"),
   };
   const navCalendarBtn = document.getElementById("nav-calendar");
   const navReportBtn = document.getElementById("nav-report");
+  const navTodoBtn = document.getElementById("nav-todo");
   const navSettingsBtn = document.getElementById("nav-settings");
 
   const homeIncomeEl = document.getElementById("home-income");
@@ -137,7 +165,13 @@
 
   const colorGrid = document.getElementById("color-grid");
 
-  const HEADER_TITLES = { home: "", calendar: "カレンダー", report: "レポート", settings: "設定" };
+  const todoForm = document.getElementById("todo-form");
+  const todoTextInput = document.getElementById("todo-text");
+  const todoDateInput = document.getElementById("todo-date");
+  const todoListEl = document.getElementById("todo-list");
+  const todoEmpty = document.getElementById("todo-empty");
+
+  const HEADER_TITLES = { home: "", calendar: "カレンダー", report: "レポート", todo: "VZ", settings: "設定" };
 
   // ---------- view switching ----------
   function switchView(view) {
@@ -149,17 +183,20 @@
     headerTitle.textContent = HEADER_TITLES[view];
     navCalendarBtn.classList.toggle("active", view === "calendar");
     navReportBtn.classList.toggle("active", view === "report");
+    navTodoBtn.classList.toggle("active", view === "todo");
     navSettingsBtn.classList.toggle("active", view === "settings");
 
     if (view === "home") renderHome();
     if (view === "calendar") renderCalendar();
     if (view === "report") renderReport();
+    if (view === "todo") renderTodo();
     if (view === "settings") renderSettings();
   }
 
   backBtn.addEventListener("click", () => switchView("home"));
   navCalendarBtn.addEventListener("click", () => switchView("calendar"));
   navReportBtn.addEventListener("click", () => switchView("report"));
+  navTodoBtn.addEventListener("click", () => switchView("todo"));
   navSettingsBtn.addEventListener("click", () => switchView("settings"));
 
   function thisMonthTransactions() {
@@ -374,6 +411,73 @@
       reportTransactionList.appendChild(li);
     });
   }
+
+  // ---------- VZ(やることリスト)view ----------
+  function renderTodo() {
+    const sorted = [...state.todos].sort((a, b) => {
+      if (a.done !== b.done) return a.done ? 1 : -1;
+      if (a.dueDate && b.dueDate) return a.dueDate < b.dueDate ? -1 : a.dueDate > b.dueDate ? 1 : 0;
+      if (a.dueDate) return -1;
+      if (b.dueDate) return 1;
+      return b.id - a.id;
+    });
+
+    todoListEl.innerHTML = "";
+    todoEmpty.classList.toggle("hidden", sorted.length > 0);
+
+    sorted.forEach((t) => {
+      const li = document.createElement("li");
+      li.className = "todo-item" + (t.done ? " done" : "");
+      const dateStr = t.dueDate ? formatDueDate(t.dueDate) : "期限なし";
+      li.innerHTML = `
+        <input type="checkbox" class="todo-check" data-id="${t.id}" ${t.done ? "checked" : ""}>
+        <span class="todo-body">
+          <span class="todo-text">${escapeHtml(t.text)}</span>
+          <span class="todo-date">${dateStr}</span>
+        </span>
+        <button class="todo-delete" aria-label="削除" data-id="${t.id}">✕</button>
+      `;
+      todoListEl.appendChild(li);
+    });
+  }
+
+  todoForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const text = todoTextInput.value.trim();
+    if (!text) return;
+
+    state.todos.push({
+      id: Date.now(),
+      text,
+      dueDate: todoDateInput.value || "",
+      done: false,
+    });
+    saveTodos();
+    todoTextInput.value = "";
+    todoDateInput.value = "";
+    todoTextInput.focus();
+    renderTodo();
+  });
+
+  todoListEl.addEventListener("click", (e) => {
+    const delBtn = e.target.closest(".todo-delete");
+    if (!delBtn) return;
+    const id = Number(delBtn.dataset.id);
+    state.todos = state.todos.filter((t) => t.id !== id);
+    saveTodos();
+    renderTodo();
+  });
+
+  todoListEl.addEventListener("change", (e) => {
+    const cb = e.target.closest(".todo-check");
+    if (!cb) return;
+    const id = Number(cb.dataset.id);
+    const todo = state.todos.find((t) => t.id === id);
+    if (!todo) return;
+    todo.done = cb.checked;
+    saveTodos();
+    renderTodo();
+  });
 
   // ---------- settings view ----------
   function renderSettings() {

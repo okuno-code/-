@@ -452,6 +452,76 @@ button, select, input {
 .legend-value { font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
 .legend-empty { color: var(--text-muted); justify-content: center; }
 
+/* ---- VZ画面(やることリスト) ---- */
+.todo-input-row {
+  display: flex;
+  gap: 8px;
+}
+#todo-text {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #e2e2e6;
+  background: #fafafb;
+  font-size: 15px;
+  color: var(--text);
+}
+#todo-date {
+  width: 132px;
+  padding: 12px 10px;
+  border-radius: 12px;
+  border: 1px solid #e2e2e6;
+  background: #fafafb;
+  font-size: 13px;
+  color: var(--text);
+}
+.todo-list {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.todo-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--card-bg-solid);
+  border-radius: 14px;
+  padding: 12px 14px;
+  box-shadow: var(--shadow);
+}
+.todo-check {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.todo-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.todo-text { font-weight: 700; font-size: 14px; word-break: break-word; }
+.todo-date { font-size: 12px; color: var(--text-muted); }
+.todo-item.done .todo-text { text-decoration: line-through; color: var(--text-muted); }
+.todo-delete {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 18px;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.todo-delete:active { color: var(--expense); }
+
 @media (min-width: 481px) {
   .app { box-shadow: var(--shadow-lg); }
 }
