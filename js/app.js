@@ -250,6 +250,38 @@
 
   const HEADER_TITLES = { home: "", calendar: "カレンダー", report: "レポート", todo: "VZ", settings: "設定" };
 
+  // ---------- トースト通知 ----------
+  // window.confirm/alert はArtifactのサンドボックス環境でブロックされ
+  // 何も起きないことがあるため、確認ダイアログには頼らず、
+  // 「即座に反映 + 元に戻す」のトースト通知で操作をフォローする。
+  const toastEl = document.getElementById("toast");
+  const toastMsgEl = document.getElementById("toast-msg");
+  const toastActionEl = document.getElementById("toast-action");
+  let toastTimer = null;
+
+  function showToast(message, actionLabel, actionFn) {
+    clearTimeout(toastTimer);
+    toastMsgEl.textContent = message;
+    if (actionLabel && actionFn) {
+      toastActionEl.textContent = actionLabel;
+      toastActionEl.classList.remove("hidden");
+      toastActionEl.onclick = () => {
+        hideToast();
+        actionFn();
+      };
+    } else {
+      toastActionEl.classList.add("hidden");
+      toastActionEl.onclick = null;
+    }
+    toastEl.classList.remove("hidden");
+    toastTimer = setTimeout(hideToast, 5000);
+  }
+
+  function hideToast() {
+    toastEl.classList.add("hidden");
+    clearTimeout(toastTimer);
+  }
+
   // ---------- view switching ----------
   function switchView(view) {
     state.view = view;
@@ -346,7 +378,7 @@
         saveTransactions();
         renderHome();
         console.error("db write failed", err);
-        alert("クラウドへの保存に失敗しました。もう一度お試しください。");
+        showToast("クラウドへの保存に失敗しました", null, null);
       });
     }
 
@@ -424,31 +456,42 @@
     renderCalendar();
   });
 
+  function renderAllTxViews() {
+    if (state.view === "calendar") renderCalendar();
+    if (state.view === "report") renderReport();
+    if (state.view === "home") renderHome();
+  }
+
   function handleDeleteClick(e) {
     const btn = e.target.closest(".tx-delete");
     if (!btn) return;
     const id = Number(btn.dataset.id);
     const tx = state.transactions.find((t) => t.id === id);
     if (!tx) return;
-    const label = `${categoryLabel(tx.category)} ${formatCurrency(tx.amount)}`;
-    if (!confirm(`この記録を取り消しますか？\n${label}`)) return;
 
-    const prevTransactions = state.transactions;
     state.transactions = state.transactions.filter((t) => t.id !== id);
     saveTransactions();
-    if (state.view === "calendar") renderCalendar();
-    if (state.view === "report") renderReport();
-    if (state.view === "home") renderHome();
+    renderAllTxViews();
+
+    const label = `${categoryLabel(tx.category)} ${formatCurrency(tx.amount)}`;
+    showToast(`削除しました: ${label}`, "元に戻す", () => {
+      state.transactions.push(tx);
+      saveTransactions();
+      renderAllTxViews();
+      if (txCol) {
+        txCol.doc(String(tx.id)).set({
+          type: tx.type, amount: tx.amount, category: tx.category, date: tx.date,
+        }).catch((err) => console.error("db restore failed", err));
+      }
+    });
 
     if (txCol) {
       txCol.doc(String(id)).delete().catch((err) => {
-        state.transactions = prevTransactions;
+        state.transactions.push(tx);
         saveTransactions();
-        if (state.view === "calendar") renderCalendar();
-        if (state.view === "report") renderReport();
-        if (state.view === "home") renderHome();
+        renderAllTxViews();
         console.error("db delete failed", err);
-        alert("削除がクラウドに反映できませんでした。もう一度お試しください。");
+        showToast("削除がクラウドに反映できませんでした", null, null);
       });
     }
   }
@@ -571,7 +614,7 @@
         saveTodos();
         renderTodo();
         console.error("db write failed", err);
-        alert("クラウドへの保存に失敗しました。もう一度お試しください。");
+        showToast("クラウドへの保存に失敗しました", null, null);
       });
     }
 
@@ -584,19 +627,31 @@
     const delBtn = e.target.closest(".todo-delete");
     if (!delBtn) return;
     const id = Number(delBtn.dataset.id);
+    const todo = state.todos.find((t) => t.id === id);
+    if (!todo) return;
 
-    const prevTodos = state.todos;
     state.todos = state.todos.filter((t) => t.id !== id);
     saveTodos();
     renderTodo();
 
+    showToast(`削除しました: ${todo.text}`, "元に戻す", () => {
+      state.todos.push(todo);
+      saveTodos();
+      renderTodo();
+      if (todoCol) {
+        todoCol.doc(String(todo.id)).set({
+          text: todo.text, dueDate: todo.dueDate, done: todo.done,
+        }).catch((err) => console.error("db restore failed", err));
+      }
+    });
+
     if (todoCol) {
       todoCol.doc(String(id)).delete().catch((err) => {
-        state.todos = prevTodos;
+        state.todos.push(todo);
         saveTodos();
         renderTodo();
         console.error("db delete failed", err);
-        alert("削除がクラウドに反映できませんでした。もう一度お試しください。");
+        showToast("削除がクラウドに反映できませんでした", null, null);
       });
     }
   });
