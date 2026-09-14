@@ -16,6 +16,7 @@
     { id: "transport", label: "交通費" },
     { id: "subscription", label: "サブスク" },
     { id: "mobile", label: "スマホ通信料" },
+    { id: "tobacco", label: "タバコ" },
   ];
 
   const CATEGORY_COLORS = {
@@ -29,6 +30,7 @@
     transport: "#c97f63",
     subscription: "#6b7fd7",
     mobile: "#d9738f",
+    tobacco: "#8f8f99",
   };
 
   const THEMES = [
