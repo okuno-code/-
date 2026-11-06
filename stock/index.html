@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>今日の株式市場</title>
+<meta name="description" content="日経平均株価と今日の株式ニュースをまとめて確認できるページ">
+<meta name="theme-color" content="#f4f5f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14161a" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="page">
+
+  <header class="top">
+    <div>
+      <h1>今日の株式市場</h1>
+      <p class="date" id="today">----</p>
+    </div>
+    <button id="reload" class="reload" aria-label="再読み込み" title="再読み込み">↻</button>
+  </header>
+
+  <div id="notice" class="notice" hidden></div>
+
+  <main class="layout">
+    <!-- 日経平均 -->
+    <section class="card hero" aria-labelledby="hero-name">
+      <div class="hero-head">
+        <h2 id="hero-name">日経平均株価</h2>
+        <span class="market-state" id="market-state"></span>
+      </div>
+      <div class="hero-price">
+        <span id="hero-price" class="num">--</span><span class="unit" id="hero-unit">円</span>
+      </div>
+      <div id="hero-change" class="change num">--</div>
+
+      <div class="tabs" role="tablist" aria-label="チャート期間">
+        <button role="tab" class="tab active" data-range="intraday" aria-selected="true">当日</button>
+        <button role="tab" class="tab" data-range="1mo" aria-selected="false">1ヶ月</button>
+        <button role="tab" class="tab" data-range="3mo" aria-selected="false">3ヶ月</button>
+      </div>
+      <div class="chart" id="chart"></div>
+
+      <dl class="stats">
+        <div><dt>始値</dt><dd id="st-open" class="num">--</dd></div>
+        <div><dt>高値</dt><dd id="st-high" class="num">--</dd></div>
+        <div><dt>安値</dt><dd id="st-low" class="num">--</dd></div>
+        <div><dt>前日終値</dt><dd id="st-prev" class="num">--</dd></div>
+      </dl>
+    </section>
+
+    <!-- その他の指標 -->
+    <section class="subs" id="subs" aria-label="その他の指標"></section>
+
+    <!-- ニュース -->
+    <section class="card news" aria-labelledby="news-title">
+      <div class="news-head">
+        <h2 id="news-title">今日の株ニュース <span id="news-count" class="count"></span></h2>
+        <input id="news-filter" type="search" placeholder="キーワードで絞り込み" aria-label="ニュースを絞り込み">
+      </div>
+      <div class="chips" id="chips"></div>
+      <ul class="news-list" id="news-list"></ul>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <span id="updated">最終更新: --</span>
+    <span>データ: Yahoo Finance / Google ニュース。投資判断はご自身の責任で。</span>
+  </footer>
+</div>
+<script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+name: Update market data
+
+on:
+  schedule:
+    # 平日 JST 9:00〜15:30 の取引時間中は30分ごと（UTC 0:00〜6:30）
+    - cron: "*/30 0-6 * * 1-5"
+    # 引け後・夕方のニュース更新（JST 18:00 / 21:00）
+    - cron: "0 9,12 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-market
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Fetch market data and news
+        run: python scripts/fetch_market.py
+      - name: Commit if changed
+        run: |
+          if git diff --quiet -- stock/data/market.json; then
+            echo "no changes"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add stock/data/market.json
+          git commit -m "chore: update market data"
+          git push
